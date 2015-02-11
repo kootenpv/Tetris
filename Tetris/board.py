@@ -9,7 +9,6 @@ class Board():
         self.children = []
         self.max_depth = max_depth
         self.board_size = board_size
-        np.array([123])
         self.bestNumChildren = bestNumChildren 
                 
     def __str__(self): 

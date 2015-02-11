@@ -1,3 +1,5 @@
+import numpy as np
+
 class DownScoring():
     def __init__(self, board_size): 
         self.board_size = board_size
@@ -19,5 +21,7 @@ class DownScoring():
     def getHeightMeasure(bits):
         return(np.min(np.where(bits)[0])) 
         
-    def calculateScore(bits): 
-        return(getHeightMeasure(bits), getLongestLowest(bits))    
+    def getScore(board): 
+        if board.depth == 0:
+            return(0)
+        return(getHeightMeasure(board.bits), getLongestLowest(board.bits))    

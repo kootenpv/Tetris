@@ -1,10 +1,6 @@
 class Board():
     def __init__(self, bits, depth = 0, max_depth = 3, board_size = (20, 10), bestNumChildren = 3):
         self.bits = bits
-        if depth == 0:            
-            self.score = 0
-        else:    
-            self.score = self.calculateScore()
         self.depth = depth    
         self.children = []
         self.max_depth = max_depth

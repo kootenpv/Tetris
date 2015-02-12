@@ -1,11 +1,11 @@
 import numpy as np
 
 class Board():
-    def __init__(self, bits, depth = 0, board_size = (20, 10)):
+    def __init__(self, bits, depth = 0):
         self.bits = bits
         self.depth = depth    
         self.children = []
-        self.board_size = board_size
+        self.board_size = bits.shape
         self.score = self.getDownScore() 
                 
     def __str__(self): 
@@ -33,7 +33,7 @@ class Board():
         return(tot)            
 
     def getHeightMeasure(self):
-        return(np.min(np.where(self.bits)[0])) 
+        return(np.min(np.where(self.bits)[0]) + np.sum(np.all(self.bits,1))) 
         
     def getDownScore(self): 
         if self.depth == 0:

@@ -8,8 +8,9 @@ class Board():
         self.board_size = bits.shape
         self.score = self.getDownScore() 
                 
-    def __str__(self): 
-        outstr = ""
+    def __repr__(self): 
+        outstr = 'd {}  s {}   ch: {}\n'.format(self.depth, self.score, len(self.children)) 
+        outstr += '-------------------\n'
         for x in self.bits:
             for y in x:
                 if y:
@@ -17,7 +18,7 @@ class Board():
                 else:    
                     outstr += ". "
             outstr += "\n"
-        return outstr
+        return outstr + "\n"   
 
     def getLongestLowest(self):
         lowest = np.max(np.where(self.bits)[0])
@@ -33,11 +34,19 @@ class Board():
         return(tot)            
 
     def getHeightMeasure(self):
-        return(np.min(np.where(self.bits)[0]) + np.sum(np.all(self.bits,1))) 
+        return(np.min(np.where(self.bits)[0]) + np.sum(np.all(self.bits,1)))
+
+    def getInsideDamage(self): 
+        highests = np.argmax(self.bits, 0)
+        highests[highests == 0 & np.logical_not(self.bits[0])] = self.board_size[0]
+        mask = np.zeros((self.board_size),dtype=bool)
+        for i,h in enumerate(highests):
+            mask[h:,i] = True
+        return(np.sum(mask - self.bits))    
         
     def getDownScore(self): 
         if self.depth == 0:
-            return(0)
-        return(self.getHeightMeasure(), 
+            return((0,0))
+        return(self.getHeightMeasure() - self.getInsideDamage(), 
                self.getLongestLowest())    
         

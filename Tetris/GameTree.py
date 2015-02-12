@@ -17,7 +17,7 @@ class GameTree():
         }
 
     def genRoot(self, board, shape):
-        self.genChildFunctions[shape](board)
+        self.genChildFunctions[shape](board)        
         
     def genChild(self, board): 
         if board.depth <= self.maxDepth: 
@@ -53,7 +53,7 @@ class GameTree():
 
         children = sorted(children, key = lambda x: x.score, reverse = True)[:self.maxChildren]
 
-        board.children.extend(children)
+        board.children.append(children)
 
     def genChildO(self, board):
         children = []
@@ -76,7 +76,7 @@ class GameTree():
                 children.append(b)
                 
         children = sorted(children, key = lambda x: x.score, reverse = True)[:self.maxChildren]        
-        board.children.extend(children)
+        board.children.append(children)
 
     def genChildS(self, board):
         children = []
@@ -107,3 +107,8 @@ class GameTree():
         print("printing not used child board")
         print(board)
         return children
+
+    def dealWithNode(self, n):
+        if n[0][0].depth == self.maxDepth:
+            return(min([max([y.score for y in x]) for x in n]))
+        return(max([[self.dealWithNode(y.children) for y in x] for x in n])) 

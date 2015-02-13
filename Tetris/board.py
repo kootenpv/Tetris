@@ -1,11 +1,18 @@
 import numpy as np
 
-class Board():
-    def __init__(self, bits, depth = 0):
-        self.bits = bits
-        self.depth = depth    
-        self.children = []
+class Board(): 
+    def __init__(self, bits, depth = 0): 
+        ## remove the lines at initialiation
         self.board_size = bits.shape
+        full_lines = np.all(bits,1)
+        n_full = np.sum(full_lines) 
+        if n_full:
+            bits = np.delete(bits, np.where(full_lines)[0], 0)            
+            self.bits = np.vstack((np.zeros((n_full, self.board_size[1]), dtype=bool), bits)) 
+        else:
+            self.bits = bits    
+        self.depth = depth    
+        self.children = [] 
         self.score = self.getDownScore() 
                 
     def __repr__(self): 
@@ -34,7 +41,7 @@ class Board():
         return(tot)            
 
     def getHeightMeasure(self):
-        return(np.min(np.where(self.bits)[0]) + np.sum(np.all(self.bits,1)))
+        return(np.min(np.where(self.bits)[0]))
 
     def getInsideDamage(self): 
         highests = np.argmax(self.bits, 0)
@@ -42,11 +49,10 @@ class Board():
         mask = np.zeros((self.board_size),dtype=bool)
         for i,h in enumerate(highests):
             mask[h:,i] = True
-        return(np.sum(mask - self.bits))    
+        return(np.sum(mask - self.bits) * self.board_size[1])    
         
     def getDownScore(self): 
-        if self.depth == 0:
-            return((0,0))
+        if np.sum(self.bits) == 0:
+            return(20,10)
         return(self.getHeightMeasure() - self.getInsideDamage(), 
                self.getLongestLowest())    
-        

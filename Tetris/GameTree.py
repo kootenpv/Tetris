@@ -35,7 +35,8 @@ class GameTree():
             for s in self.shapes: 
                 self.genChildShape(board, s) 
 
-    def genChildShape(self, board, s): 
+    def genChildShape(self, board, s):
+        # In the end it would be 20% faster to just write these out for each piece 
         children = []
         for rotation, max_sizes in zip(self.rotations[s], self.max_coordinates[s]): 
             doneV = []
@@ -55,8 +56,9 @@ class GameTree():
                             self.genChild(b)
                             children.append(b)    
                             doneV.append(i) 
-                            
-        children = sorted(children, key = lambda x: x.score, reverse = True)[:int(self.maxChildren / (board.depth+1))]
+
+        maxChildren = int(self.maxChildren / (board.depth+1))
+        children = sorted(children, key = lambda x: x.score, reverse = True)[:maxChildren]
         
         board.children.append(children)        
 

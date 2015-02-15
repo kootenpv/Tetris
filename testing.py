@@ -5,9 +5,11 @@ from Tetris import Board
 import random
 from Tetris.GameTree import GameTree
 
+
+
 def startGame(turns, shapes = None): 
     board_size = (20, 10)
-    GT = GameTree(maxChildren = 1, maxDepth = 1) 
+    GT = GameTree(maxChildren = 5, maxDepth = 2) 
     if shapes is None:
         shapes = GT.shapes
     s = random.choice(shapes) 

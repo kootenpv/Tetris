@@ -2,111 +2,63 @@ import numpy as np
 from .board import Board
 
 class GameTree():
+    shapes = ['I', 'O', 'S', 'Z', 'T', 'L', 'J']
+    
+    rotations = {'S' : [[(0,0), (0,1), (1,1), (1,2)],
+                 [(1,0), (0,1), (2,0), (1,1)]],
+          'I' : [[(0,0), (0,1), (0,2), (0,3)],
+                 [(0,0), (1,0), (2,0), (3,0)]],
+          'O' : [[(0,0), (0,1), (1,0), (1,1)]],
+          'T' : [[(0,0), (0,1), (0,2), (1,1)],
+                 [(0,0), (1,0), (2,0), (1,1)],
+                 [(0,1), (1,0), (1,1), (1,2)],
+                 [(1,0), (0,1), (1,1), (2,1)]],
+          'Z' : [[(1,0), (1,1), (0,1), (0,2)], 
+                 [(0,0), (1,0), (1,1), (2,1)]],
+    # weird l and j       
+          'L' : [[(0,0), (0,1), (0,2), (1,0)],
+                 [(0,0), (0,1), (1,0), (2,0)]],
+          'J' : [[(0,0), (0,1), (0,2), (1,2)],
+                 [(0,0), (1,0), (2,0), (2,1)]]
+          }
+
     def __init__(self, maxChildren, maxDepth):
         self.maxChildren = maxChildren
-        self.maxDepth = maxDepth
-        
-        self.genChildFunctions = {
-            'I' : self.genChildI, 
-            #'S' : self.genChildS, 
-            #'Z' : self.genChildZ, 
-            'O' : self.genChildO, 
-            #'L' : self.genChildL, 
-            #'J' : self.genChildJ, 
-            #'T' : self.genChildT 
-        }
+        self.maxDepth = maxDepth 
+        self.max_coordinates = {s : np.max(self.rotations[s], 1) + 1 for s in self.rotations}
 
     def genRoot(self, board, shape):
-        self.genChildFunctions[shape](board)        
+        self.genChildShape(board, shape)       
         
     def genChild(self, board): 
-        if board.depth <= self.maxDepth: 
-            for s in self.genChildFunctions:
-                self.genChildFunctions[s](board) 
+        if board.depth < self.maxDepth: 
+            for s in self.shapes: 
+                self.genChildShape(board, s) 
 
-    def genChildI(self, board):
-        #vertical 
+    def genChildShape(self, board, s): 
         children = []
-        highests = np.argmax(board.bits, 0)
-        highests[highests == 0 & np.logical_not(board.bits[0])] = board.board_size[0]
-        for num, i in enumerate(highests * (highests > 3)):
-
-            if i > 0:
-
-                mask = np.zeros(board.board_size, dtype=bool)
-                mask[range(i-4,i), num] = True
-                b = Board(board.bits | mask, board.depth + 1)
-                self.genChild(b)
-                children.append(b)
-
-        # horizontal
-        for i in range(board.board_size[1] - 3):
-
-            if np.all(highests[range(i,i+4)] > 0):
-
-                num = min(highests[range(i,i+4)]) - 1
-                mask = np.zeros(board.board_size, dtype=bool)
-                mask[num, range(i,i+4)] = True
-                b = Board(board.bits | mask, board.depth + 1)
-                self.genChild(b)
-                children.append(b)
-
-        children = sorted(children, key = lambda x: x.score, reverse = True)[:self.maxChildren]
-
-        board.children.append(children)
-
-    def genChildO(self, board):
-        children = []
-        highests = np.argmax(board.bits, 0)
-        highests[highests == 0 & np.logical_not(board.bits[0])] = board.board_size[0]
-        doesNotTouchCeiling = (highests * (highests > 1))
-
-        for num, (i, j) in enumerate(zip(doesNotTouchCeiling[:-1], doesNotTouchCeiling[1:])):
-
-            if i > 0 and j > 0:
-
-                ind = min(highests[range(num, num + 2)]) - 1
-                mask = np.zeros(board.board_size, dtype=bool)
-                mask[ind-1, num] = True
-                mask[ind, num] = True
-                mask[ind-1, num+1] = True
-                mask[ind, num+1] = True
-                b = Board(board.bits | mask, board.depth + 1) 
-                self.genChild(b)
-                children.append(b)
-                
-        children = sorted(children, key = lambda x: x.score, reverse = True)[:self.maxChildren]        
-        board.children.append(children)
-
-    def genChildS(self, board):
-        children = []
-        print("printing not used child board")
-        print(board)
-        return children
-
-    def genChildZ(self, board):
-        children = []
-        print("printing not used child board")
-        print(board)
-        return children
-
-    def genChildL(self, board):
-        children = []
-        print("printing not used child board")
-        print(board)
-        return children
-
-    def genChildJ(self, board):
-        children = []
-        print("printing not used child board")
-        print(board)
-        return children
-
-    def genChildT(self, board):
-        children = []
-        print("printing not used child board")
-        print(board)
-        return children
+        for rotation, max_sizes in zip(self.rotations[s], self.max_coordinates[s]): 
+            doneV = []
+            for r in range(board.board_size[0] - 1, - 2 + max_sizes[0], -1): 
+                if len(doneV) == board.board_size[1] - max_sizes[1] + 1:
+                    break
+                for i in range(board.board_size[1] - max_sizes[1] + 1): 
+                    if i not in doneV:
+                        for c in rotation: 
+                            if board.bits[r - c[0]][i + c[1]]:
+                                break
+                        else:    
+                            mask = np.zeros((board.board_size), dtype=bool)    
+                            for c in rotation:
+                                mask[r - c[0]][i + c[1]] = True
+                            b = Board(board.bits | mask, board.depth + 1)
+                            self.genChild(b)
+                            children.append(b)    
+                            doneV.append(i) 
+                            
+        children = sorted(children, key = lambda x: x.score, reverse = True)[:int(self.maxChildren / (board.depth+1))]
+        
+        board.children.append(children)        
 
     def dealWithNode(self, n):
         if n[0][0].depth == self.maxDepth:

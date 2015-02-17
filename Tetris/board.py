@@ -14,11 +14,15 @@ class Board():
         self.depth = depth    
         self.children = [] 
         self.score = self.getDownScore() 
+        
+    def reset(self):        
+        self.depth = 0
+        self.bits[:] = False
                 
     def __repr__(self): 
         outstr = 'd {}  s {}   ch: {}\n'.format(self.depth, self.score, len(self.children)) 
         outstr += '-------------------\n'
-        for x in self.bits:
+        for x in reversed(self.bits):
             for y in x:
                 if y:
                     outstr += "o "
@@ -50,9 +54,62 @@ class Board():
         for i,h in enumerate(highests):
             mask[h:,i] = True
         return(np.sum(mask - self.bits) * self.board_size[1])    
-        
+
+    def numHoles(self):
+        true_bits = np.where(self.bits)        
+        holes = 0
+        done = set()
+        y, x = true_bits
+        for a,b in zip(x,y):
+            if a in done:
+                continue
+            for i in range(b, self.board_size[0]):
+                if not self.bits[(i, a)]:
+                    holes += 1
+            done.add(a)
+        return(holes)    
+
     def getDownScore(self): 
         if np.sum(self.bits) == 0:
             return(20,10)
-        return(self.getHeightMeasure() - self.getInsideDamage(), 
+        #self.getHeightMeasure()
+        return( - self.getInsideDamage() - self.numHoles(), 
                self.getLongestLowest())    
+
+
+(-1)              2
+(1)               2
+(0,1)             1
+(-1,0)            1
+(1, -1)           1
+(0)               3
+(0,0)             3
+(1,0)             1
+(-1,0)            1
+(2)               1
+(-2)              1  
+(0,0,0)           1
+()                1
+
+S: (-1), (0, 1)
+Z: (1), (-1, 0)
+L: (0), (0, 0), (1, 0), (2)
+J: (0), (0, 0), (0, -1), (-2)
+S: (0)
+I: (0,0,0), () # empty set
+T: (0,0), (1), (1, -1), (-1) 
+
+
+(-1,0,1)
+
+def heightToBoard(representation = [], initialHeight = 0, depth = 0):
+    board_size = (20,10)
+    b = np.zeros(board_size, dtype=bool)
+    for i in range(board_size[1]): 
+        print(initialHeight , sum(representation[:i]))
+        b[:initialHeight + sum(representation[:i]), i] = True
+        print(b)
+    board = Board(b, depth)    
+    return(board)    
+
+heightToBoard([0, 1, 0, 2, 0, 1, 0, 0, 0], 10)    

@@ -1,3 +1,6 @@
+# chasms
+# line height squared or something
+
 import numpy as np
 from .board import Board
 
@@ -5,22 +8,25 @@ class GameTree():
     shapes = ['I', 'O', 'S', 'Z', 'T', 'L', 'J']
     
     rotations = {'S' : [[(0,0), (0,1), (1,1), (1,2)],
-                 [(1,0), (0,1), (2,0), (1,1)]],
-          'I' : [[(0,0), (0,1), (0,2), (0,3)],
-                 [(0,0), (1,0), (2,0), (3,0)]],
-          'O' : [[(0,0), (0,1), (1,0), (1,1)]],
-          'T' : [[(0,0), (0,1), (0,2), (1,1)],
-                 [(0,0), (1,0), (2,0), (1,1)],
-                 [(0,1), (1,0), (1,1), (1,2)],
-                 [(1,0), (0,1), (1,1), (2,1)]],
-          'Z' : [[(1,0), (1,1), (0,1), (0,2)], 
-                 [(0,0), (1,0), (1,1), (2,1)]],
-    # weird l and j       
-          'L' : [[(0,0), (0,1), (0,2), (1,0)],
-                 [(0,0), (0,1), (1,0), (2,0)]],
-          'J' : [[(0,0), (0,1), (0,2), (1,2)],
-                 [(0,0), (1,0), (2,0), (2,1)]]
-          }
+             [(1,0), (0,1), (2,0), (1,1)]],
+      'I' : [[(0,0), (0,1), (0,2), (0,3)],
+             [(0,0), (1,0), (2,0), (3,0)]],
+      'O' : [[(0,0), (0,1), (1,0), (1,1)]],
+      'T' : [[(0,0), (0,1), (0,2), (1,1)],
+             [(0,0), (1,0), (2,0), (1,1)],
+             [(0,1), (1,0), (1,1), (1,2)],
+             [(1,0), (0,1), (1,1), (2,1)]],
+      'Z' : [[(1,0), (1,1), (0,1), (0,2)], 
+             [(0,0), (1,0), (1,1), (2,1)]],
+      'L' : [[(0,0), (0,1), (1,0), (2,0)],
+             [(0,0), (1,0), (1,1), (1,2)],
+             [(2,0), (2,1), (1,1), (0,1)],
+             [(0,0), (0,1), (0,2), (1,2)]],
+      'J' : [[(0,0), (0,1), (1,1), (2,1)],     
+             [(0,0), (0,1), (0,2), (1,0)],
+             [(0,0), (1,0), (2,0), (2,1)],
+             [(1,0), (1,1), (1,2), (0,2)]]
+      }        
 
     def __init__(self, maxChildren, maxDepth):
         self.maxChildren = maxChildren
@@ -60,9 +66,18 @@ class GameTree():
         maxChildren = int(self.maxChildren / (board.depth+1))
         children = sorted(children, key = lambda x: x.score, reverse = True)[:maxChildren]
         
-        board.children.append(children)        
-
+        board.children.append(children)                       
+        
     def dealWithNode(self, n):
         if n[0][0].depth == self.maxDepth:
             return(min([max([y.score for y in x]) for x in n]))
         return(max([[self.dealWithNode(y.children) for y in x] for x in n])) 
+
+    def getTerminalNodes(self, board, container):
+        if board.children: 
+            for x in board.children: 
+                for y in x:
+                    self.getTerminalNodes(y, container) 
+        else:
+            container.append(board)
+        return(container)

@@ -4,13 +4,13 @@ class Board():
     def __init__(self, bits, depth = 0): 
         ## remove the lines at initialiation
         self.board_size = bits.shape
-        full_lines = np.all(bits,1)
-        n_full = np.sum(full_lines) 
-        if n_full:
-            bits = np.delete(bits, np.where(full_lines)[0], 0)            
-            self.bits = np.vstack((np.zeros((n_full, self.board_size[1]), dtype=bool), bits)) 
-        else:
-            self.bits = bits    
+        # full_lines = np.all(bits,1)
+        # n_full = np.sum(full_lines) 
+        # if n_full:
+        #     bits = np.delete(bits, np.where(full_lines)[0], 0)            
+        #     self.bits = np.vstack((np.zeros((n_full, self.board_size[1]), dtype=bool), bits)) 
+        # else:
+        self.bits = bits    
         self.depth = depth    
         self.children = [] 
         self.score = self.getDownScore() 
@@ -91,25 +91,120 @@ class Board():
 (0,0,0)           1
 ()                1
 
-S: (-1), (0, 1)
-Z: (1), (-1, 0)
-L: (0), (0, 0), (1, 0), (2)
-J: (0), (0, 0), (0, -1), (-2)
-S: (0)
-I: (0,0,0), () # empty set
-T: (0,0), (1), (1, -1), (-1) 
+piecesPre = {"S": [[-1], [0, 1]],
+             "Z": [[1], [-1, 0]],
+             "L": [[0], [0, 0], [0, -1], [-2]],
+             "J": [[0], [0, 0], [1, 0], [2]],
+             "S": [[0]],
+             "I": [[0,0,0], []],
+             "T": [   [0,0]      [2,0,0]        , [1], [-1, 1], [-1]]}
 
 
-(-1,0,1)
+pieces = {'S' : [-1], [x+2, -1, -1]}
 
-def heightToBoard(representation = [], initialHeight = 0, depth = 0):
+0,1,2,3
+
+
+piecesPost = {"S": [[-1], [0, 1]],
+             "Z": [],
+             "L": [[], [], [], [3, 2, -1]], 
+             "J": [],
+             "S": [],
+             "I": [],
+             "T": [[3,1,-1,-1], [3,-2,-1], [-1, 1, 1, -1], [1,2,-2]]}
+
+def heightToBoard(representation = [], depth = 0):
     board_size = (20,10)
     b = np.zeros(board_size, dtype=bool)
     for i in range(board_size[1]): 
-        print(initialHeight , sum(representation[:i]))
-        b[:initialHeight + sum(representation[:i]), i] = True
-        print(b)
-    board = Board(b, depth)    
+        b[:10+sum(representation[:i]), i] = True 
+    board = Board(b, depth) 
+    print(board)
     return(board)    
 
-heightToBoard([0, 1, 0, 2, 0, 1, 0, 0, 0], 10)    
+z = heightToBoard([0, -2, 2, 0, 0, 0, 0, -2 , 0, 1])
+z = heightToBoard([0, 1, 0, -1, 0, 0, 0, -2 , 0, 1])
+
+z = heightToBoard([0, 0, 0, 2, -1, -1, -2 , 0, 1])
+z = heightToBoard([1, 1, -1, 1, -1, -1, -2 , 0, 1])
+
+z = heightToBoard([0, 0, 0, 2, -1, -1, -2 , 1, 0])
+z = heightToBoard([0, 0, 0, 2, -1, -1, 1 , -1, -1])
+
+z = heightToBoard([0, 0, 0, 2, -1, -2, -1 , 1, 0])
+z = heightToBoard([0, 0, 0, 2, -1, -1, 0, 0, -1])
+
+z = heightToBoard([0, 0, 0, 2, -1, -1, 0, -1, 0])
+z = heightToBoard([0, 0, 0, 2, -1, -1, 1, 1, -2])
+
+
+
+OptionisInContour([0,0], [0, 0, -1, 0, 0, 0, -2 , 0, 1])
+
+flatb = [1, 1, 0, 2, 0, -1, 0, 0, 0]
+
+def OptionisInContour(option, contour):
+    possibilities = []
+    len_options  = len(option)
+    len_contour = len(contour)
+    for c in range(len_contour - len_options + 1): 
+        if all([contour[i] == option[j] for i,j in zip(range(c, c + len_options), range(len_options))]):
+            possibilities.append(c)
+    return(possibilities)        
+        
+            
+def genBoards(contour, piece = "T"): 
+    b=heightToBoard(contour)
+    boards = [] 
+    len_contour = len(contour)
+    for option, post in zip(piecesPre[piece], piecesPost[piece]): 
+        possibilities = OptionisInContour(option, contour)
+        for possibility in possibilities: 
+            newContour = [] + contour
+            len_post = len(post)
+            for r, p in zip(range(possibility - 1, possibility + len_contour + 1), post):
+                if r > 0 and r < len_contour: 
+                    newContour[r] = contour[r] + p
+            boards.append(newContour)
+    return(boards)        
+            
+
+heightToBoard([-3, 2, 0, 0, 0, 0, -2 , 0, 1])
+
+heightToBoard(genBoards([-3, 2, 0, 0, 0, 0, -2 , 0, 1])[3])
+        
+for i in range(10000):
+    z=genBoards([-3, 2, 0, 0, 0, 0, -2 , 0, 1])    
+
+
+for i in range(100000):
+    n = 2
+    contour = [-3, 2, 0, 0, 0, 0, -2 , 0, 1]
+    m = len(contour) - n + 1
+    for i in range(m):
+        if contour[i-1:i+n] in piecesPre['T']: 
+            ind = piecesPre['T'].index(contour[i-1:i+n])
+            middle = piecesPost['T'][ind]
+            if i > 0:
+                middle[0] += contour[i] 
+            z=contour[:i-1] + middle + contour[i+n:]
+
+
+
+
+z = [0, 0, 0, 2, -1, -1, 1, 1, -2]
+
+
+for i in range(2000000):
+    [z[i:i+3] for i in range(8)]
+
+(0,0,1), (1,2,1)
+(1,0), ()
+
+
+for i in range(10000000):
+    a = max([2,1,4,6,4,1,134,235,34,535,6,456,45,6,456,45,6])
+
+z=Board(np.zeros((8,6),dtype=bool))    
+
+z.bits[:-5,:1] =  True

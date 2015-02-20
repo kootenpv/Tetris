@@ -208,3 +208,4 @@ for i in range(10000000):
 z=Board(np.zeros((8,6),dtype=bool))    
 
 z.bits[:-5,:1] =  True
+

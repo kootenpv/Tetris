@@ -1,5 +1,9 @@
 import numpy as np
-from .board import Board
+
+try:
+    from .board import Board
+except ImportError:    
+    from board import Board    
 
 class GameTree():
     shapes = ['I', 'O', 'S', 'Z', 'T', 'L', 'J']
@@ -100,10 +104,11 @@ class Shape():
         
         
 
-# GT = GameTree(10,2)
+# GT = GameTree(10,3)
 
 # a = Board(np.zeros((8,6), dtype=bool))
 
 # GT.genRoot(a, 'I')
 
 # GT.dealWithNode(a.shapes)
+
